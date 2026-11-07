@@ -1,0 +1,21 @@
+# Local secrets, per-user settings, sessions and memory (never commit these)
+.env
+data/
+workspace/
+
+# Third-party MCP reference servers: cloned from upstream during setup, see README
+vendor/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Build output, logs and OS noise
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db

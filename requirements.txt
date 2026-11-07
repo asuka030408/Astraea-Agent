@@ -1,0 +1,10 @@
+langchain[mcp]>=1.4,<2.0
+langchain-openai>=1.0,<2.0
+python-dotenv>=1.0,<2.0
+fastapi>=0.115,<1.0
+uvicorn>=0.30,<1.0
+PySide6>=6.8,<7.0
+ddgs>=9,<10
+-e vendor/mcp-servers/src/fetch
+-e vendor/mcp-servers/src/git
+-e vendor/mcp-servers/src/time

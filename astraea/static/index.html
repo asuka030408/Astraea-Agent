@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astraea Agent</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="appLayout">
+  <aside class="sidebar" id="sidebar" aria-label="对话历史">
+    <div class="sidebarBrand"><span class="star">✦</span><div><h1>Astraea</h1><p>Local coding agent</p></div></div>
+    <button id="newChat" type="button">＋ 新对话</button>
+    <div class="historyHeading">对话历史</div>
+    <nav id="history" aria-label="历史对话"></nav>
+  </aside>
+  <button class="sidebarBackdrop" id="sidebarBackdrop" type="button" aria-label="关闭对话历史"></button>
+  <div class="shell">
+    <header>
+      <button class="menuToggle" id="menuToggle" type="button" aria-label="打开对话历史" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <div class="chatTitle">对话</div>
+      <button class="contextButton" id="openSettings" type="button">设置</button>
+      <button class="contextButton" id="openContext" type="button">上下文管理</button>
+    </header>
+    <div class="workspace" id="workspace">正在连接本地 Agent…</div>
+    <main id="timeline" aria-live="polite">
+      <div class="welcome"><span class="star large">✦</span><h2>从一个任务开始</h2><p>可以让 Astraea 搜索、读取或修改工作区文件，并运行测试。</p></div>
+    </main>
+    <form id="composer">
+      <textarea id="message" rows="2" placeholder="例如：搜索工作区中包含 TODO 的文件" required></textarea>
+      <div class="composerFoot"><span id="status">T0 · 上下文 0%</span><button id="send" type="submit">发送 ↗</button></div>
+    </form>
+  </div>
+  </div>
+  <dialog id="contextDialog" aria-labelledby="contextTitle">
+    <div class="contextHeader"><div><h2 id="contextTitle">上下文管理</h2><p id="contextMeta">正在读取…</p></div><button id="closeContext" type="button" aria-label="关闭">✕</button></div>
+    <div class="contextBody">
+      <section aria-labelledby="activeTitle"><h3 id="activeTitle">当前 messages</h3><p class="contextHint">当前活动上下文；下一次请求还会加入你新发送的消息。</p><div id="activeMessages"></div></section>
+      <section aria-labelledby="archiveTitle"><h3 id="archiveTitle">外部归档</h3><p class="contextHint">已移出活动上下文的原文。T5 检索到的片段会在上方的 messages 中出现。</p><div id="archiveMessages"></div></section>
+    </div>
+  </dialog>
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+    <form id="settingsForm">
+      <div class="contextHeader"><div><h2 id="settingsTitle">设置</h2><p id="settingsMeta">正在读取本地配置…</p></div><button id="closeSettings" type="button" aria-label="关闭">✕</button></div>
+      <div class="contextBody settingsBody">
+        <p class="contextHint">填写的值保存在本机 data/settings.json，优先于 .env。API Key 只以掩码显示，留空表示不修改；保存后新建对话即生效。</p>
+        <section aria-labelledby="chatModelTitle">
+          <h3 id="chatModelTitle">对话模型（DeepSeek 等 OpenAI 兼容接口）</h3>
+          <label for="cfgApiKey">API Key</label>
+          <input id="cfgApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="尚未填写">
+          <label for="cfgBaseUrl">API 地址</label><input id="cfgBaseUrl" spellcheck="false">
+          <label for="cfgModel">模型</label><input id="cfgModel" spellcheck="false">
+          <label for="cfgCompactor">摘要模型（可选，留空跟随主模型）</label><input id="cfgCompactor" spellcheck="false">
+          <label for="cfgWindow">上下文窗口（token）</label><input id="cfgWindow" type="number" min="1000">
+        </section>
+        <section aria-labelledby="embedTitle">
+          <h3 id="embedTitle">记忆向量（百炼 Embedding）</h3>
+          <label for="cfgEmbedKey">Embedding API Key</label>
+          <input id="cfgEmbedKey" type="password" autocomplete="off" spellcheck="false" placeholder="尚未填写">
+          <label for="cfgEmbedUrl">Embedding 地址</label><input id="cfgEmbedUrl" spellcheck="false">
+          <label for="cfgEmbedModel">Embedding 模型</label><input id="cfgEmbedModel" spellcheck="false">
+          <label for="cfgEmbedDims">向量维度</label><input id="cfgEmbedDims" type="number" min="1">
+        </section>
+        <section aria-labelledby="workspaceTitle">
+          <h3 id="workspaceTitle">工作区</h3>
+          <label for="cfgWorkspace">文件工具可访问的目录（改动后会自动重连 MCP 服务）</label>
+          <input id="cfgWorkspace" spellcheck="false">
+        </section>
+      </div>
+      <div class="settingsFoot"><span id="settingsHint"></span><button id="saveSettings" type="button">保存并应用</button></div>
+    </form>
+  </dialog>
+  <script src="/app.js"></script>
+</body>
+</html>
