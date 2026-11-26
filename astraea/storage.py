@@ -18,13 +18,16 @@ def _write_json(path: Path, value: object) -> None:
     temporary.replace(path)
 
 
-def save_session(session_id: str, messages: list, summary: str, tier: int, active: list | None = None) -> None:
+def save_session(session_id: str, messages: list, summary: str, tier: int, active: list | None = None,
+                 *, summary_source_count: int = 0, last_budget: dict | None = None) -> None:
     _write_json(
         DATA_DIR / "sessions" / f"{session_id}.json",
         {
             "session_id": session_id,
             "tier": tier,
             "summary": summary,
+            "summary_source_count": summary_source_count,
+            "last_budget": last_budget or {},
             "messages": [message_to_dict(message) for message in messages],
             "active": [message_to_dict(message) for message in (messages if active is None else active)],
         },

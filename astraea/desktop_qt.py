@@ -12,11 +12,10 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QTextEdit, QToolButton, QVBoxLayout, QWidget,
 )
-from langchain_core.messages import SystemMessage
 
 from astraea.agent import build_model
 from astraea.config import PROJECT_DIR, Settings
-from astraea.context import ContextManager, PROFILE_PREFIX, estimate_tokens, usage_tokens
+from astraea.context import ContextManager, usage_tokens
 from astraea.memory import MemoryManager, read_profile_markdown
 from astraea.mcp_tools import invoke_with_mcp
 
@@ -151,7 +150,7 @@ class TurnWorker(QObject):
     def run(self):
         try:
             request = self.context.prepare(self.message, read_profile_markdown())
-            result = asyncio.run(invoke_with_mcp(self.model, self.settings, request))
+            result = asyncio.run(invoke_with_mcp(self.model, self.settings, request, context=self.context))
             fresh = result["messages"][len(request):]
             self.context.record(result["messages"])
             try:
@@ -348,10 +347,9 @@ class AstraeaWindow(QMainWindow):
         if events:
             self._tool_details(events)
         self._bubble("ASTRAEA", answer)
-        profile = read_profile_markdown()
-        profile_tokens = estimate_tokens([SystemMessage(content=PROFILE_PREFIX + profile)]) if profile else 0
-        percent = 100 * (usage_tokens(self.context.active) + profile_tokens) / self.settings.context_window
-        self.usage.setText(f"T{self.context.tier}  ·  上下文 {percent:.1f}%")
+        tokens = self.context.last_budget.get("input_total", usage_tokens(self.context.active))
+        percent = 100 * tokens / self.settings.context_window
+        self.usage.setText(f"动态上下文  ·  {percent:.1f}%")
         self.hint.setText("Enter 发送  ·  Shift + Enter 换行  ·  工具操作仅作用于当前工作区")
 
     def _failed(self, error):

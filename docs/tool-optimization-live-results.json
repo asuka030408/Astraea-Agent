@@ -1,0 +1,162 @@
+{
+  "model": "deepseek-chat",
+  "tasks": 7,
+  "results": [
+    {
+      "task": 1,
+      "mode": "baseline",
+      "ms": 1161.1,
+      "correct": true,
+      "answer": "青鸟17",
+      "tool_calls": [
+        "read_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 1,
+      "mode": "optimized",
+      "ms": 902.3,
+      "correct": true,
+      "answer": "青鸟17",
+      "tool_calls": [
+        "read_file"
+      ],
+      "schema_tokens": 238
+    },
+    {
+      "task": 2,
+      "mode": "optimized",
+      "ms": 748.2,
+      "correct": true,
+      "answer": "42",
+      "tool_calls": [
+        "read_file"
+      ],
+      "schema_tokens": 322
+    },
+    {
+      "task": 2,
+      "mode": "baseline",
+      "ms": 1670.7,
+      "correct": true,
+      "answer": "42",
+      "tool_calls": [
+        "read_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 3,
+      "mode": "baseline",
+      "ms": 1666.5,
+      "correct": true,
+      "answer": "2 个 .txt 文件（note.txt、second.txt）。",
+      "tool_calls": [
+        "list_files"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 3,
+      "mode": "optimized",
+      "ms": 1268.7,
+      "correct": true,
+      "answer": "2 个 .txt 文件（note.txt、second.txt）。",
+      "tool_calls": [
+        "list_files"
+      ],
+      "schema_tokens": 322
+    },
+    {
+      "task": 4,
+      "mode": "optimized",
+      "ms": 1568.6,
+      "correct": true,
+      "answer": "两个文件均已读取，按顺序的校验词如下：\n\n1. **note.txt**：青鸟17\n2. **second.txt**：白帆29",
+      "tool_calls": [
+        "run_readonly_plan"
+      ],
+      "schema_tokens": 381
+    },
+    {
+      "task": 4,
+      "mode": "baseline",
+      "ms": 1252.5,
+      "correct": true,
+      "answer": "两个文件的校验词按顺序如下：\n\n1. **note.txt** → 青鸟17\n2. **second.txt** → 白帆29",
+      "tool_calls": [
+        "read_file",
+        "read_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 5,
+      "mode": "baseline",
+      "ms": 2130.4,
+      "correct": true,
+      "answer": "已创建。result.txt 内容为 VERIFIED。",
+      "tool_calls": [
+        "write_file",
+        "read_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 5,
+      "mode": "optimized",
+      "ms": 999.5,
+      "correct": true,
+      "answer": "已创建 result.txt，内容为 VERIFIED。",
+      "tool_calls": [
+        "write_file"
+      ],
+      "schema_tokens": 323
+    },
+    {
+      "task": 6,
+      "mode": "optimized",
+      "ms": 830.2,
+      "correct": true,
+      "answer": "已复制。",
+      "tool_calls": [
+        "copy_file"
+      ],
+      "schema_tokens": 463
+    },
+    {
+      "task": 6,
+      "mode": "baseline",
+      "ms": 1509.4,
+      "correct": true,
+      "answer": "已复制。",
+      "tool_calls": [
+        "copy_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 7,
+      "mode": "baseline",
+      "ms": 1456.8,
+      "correct": true,
+      "answer": "已删除（文件已移入工作区的可恢复回收站 `.astraea-trash/`，需要时可以恢复）。",
+      "tool_calls": [
+        "delete_file"
+      ],
+      "schema_tokens": 1588
+    },
+    {
+      "task": 7,
+      "mode": "optimized",
+      "ms": 1546.1,
+      "correct": true,
+      "answer": "已删除：工作区的 to_delete.txt 已被移入可恢复的回收站（`.astraea-trash/`），需要时可以还原。",
+      "tool_calls": [
+        "delete_file"
+      ],
+      "schema_tokens": 379
+    }
+  ]
+}

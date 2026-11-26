@@ -50,8 +50,11 @@ _runtime = None
 
 
 def current_usage_tokens(context: ContextManager) -> int:
+    if context.last_budget:
+        return context.last_budget["input_total"]
     profile = read_profile_markdown()
-    profile_tokens = (estimate_tokens([SystemMessage(content=PROFILE_PREFIX + profile)]) if profile else 0)
+    profile_tokens = (estimate_tokens([SystemMessage(content=PROFILE_PREFIX + profile)])
+                      if profile and not any(context._is_profile(item) for item in context.active) else 0)
     return usage_tokens(context.active) + profile_tokens
 
 
@@ -217,7 +220,7 @@ def active_context(session_id: str):
             context = session.context
             profile = read_profile_markdown()
             display_messages = ([{"role": "system", "content": PROFILE_PREFIX + profile, "tool_calls": []}]
-                                if profile else [])
+                                if profile and not any(context._is_profile(item) for item in context.active) else [])
             messages = display_messages + [{"role": item.type, "content": str(item.content),
                          "tool_calls": getattr(item, "tool_calls", []) or []}
                         for item in context.active]
@@ -225,7 +228,9 @@ def active_context(session_id: str):
                     "tokens_estimate": current_usage_tokens(context),
                     "context_window": settings.context_window,
                     "summary": context.summary, "messages": messages,
-                    "archives": list_archive_fragments(session_id)}
+                    "budget": context.last_budget,
+                    "tool_metrics": getattr(getattr(context, "_tool_runtime", None), "metrics", {}),
+                    "archives": list_archive_fragments(session_id) + context.store.list_items()}
     except (FileNotFoundError, ValueError) as exc:
         raise HTTPException(status_code=404, detail="Session not found") from exc
 
@@ -240,7 +245,7 @@ def chat(request: ChatRequest):
         try:
             messages = session.context.prepare(request.message.strip(), read_profile_markdown())
             prior_count = len(messages)
-            result = _run_on_main_loop(invoke_with_mcp(model, settings, messages))
+            result = _run_on_main_loop(invoke_with_mcp(model, settings, messages, context=session.context))
             new_messages = result["messages"][prior_count:]
             session.context.record(result["messages"])
         except ValueError as exc:
@@ -294,7 +299,7 @@ async def chat_stream(request: ChatRequest):
 
             async def run_turn():
                 try:
-                    result = await invoke_with_mcp(model, settings, messages, callbacks=[callbacks])
+                    result = await invoke_with_mcp(model, settings, messages, callbacks=[callbacks], context=session.context)
                     session.context.record(result["messages"])
                     queue.put_nowait({"type": "answer", "text": str(result["messages"][-1].content)})
                     try:

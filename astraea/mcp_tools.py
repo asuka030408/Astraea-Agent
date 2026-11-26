@@ -152,14 +152,25 @@ async def reset_mcp_session() -> None:
     await _session.close()
 
 
-async def invoke_with_mcp(model, settings: Settings, messages: list, callbacks=None):
+async def invoke_with_mcp(model, settings: Settings, messages: list, callbacks=None, context=None):
     """Run one agent turn, reusing the persistent MCP session when possible."""
     from astraea.agent import build_agent
 
     async def run(tools):
         set_discovered_tools(tools)
-        agent = build_agent(model, extra_tools=tools)
-        return await agent.ainvoke({"messages": messages}, config={"callbacks": callbacks or []})
+        agent = build_agent(model, extra_tools=tools, context=context)
+        runtime = getattr(context, "_tool_runtime", None)
+        user_text = next((str(item.content) for item in reversed(messages) if item.type == "human"), "")
+        prefetch_tasks = runtime.prefetch(user_text) if runtime is not None else []
+        try:
+            return await agent.ainvoke({"messages": messages}, config={"callbacks": callbacks or []})
+        finally:
+            for task in prefetch_tasks:
+                if not task.done():
+                    task.cancel()
+            if prefetch_tasks:
+                await asyncio.gather(*prefetch_tasks, return_exceptions=True)
+                runtime.prefetched_keys.clear()
 
     if asyncio.get_running_loop() is _persistent_loop:
         async with _get_turn_lock():

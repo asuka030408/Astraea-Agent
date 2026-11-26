@@ -31,7 +31,8 @@ async function refreshContext() {
     if (!response.ok) throw new Error(data.detail || '无法读取上下文');
     if (!contextDialog.open || selectedId !== sessionId) return;
     const percent = (100 * data.tokens_estimate / data.context_window).toFixed(1);
-    document.getElementById('contextMeta').textContent = `T${data.tier} · 约 ${data.tokens_estimate} / ${data.context_window} tokens · ${percent}%`;
+    const budget = data.budget || {};
+    document.getElementById('contextMeta').textContent = `动态上下文 · 约 ${data.tokens_estimate} / ${data.context_window} tokens · ${percent}% · 外置工具组 ${budget.omitted_tool_groups || 0}`;
     const active = document.getElementById('activeMessages');
     active.replaceChildren();
     if (!data.messages.length) active.append(contextCard('当前为空', '发送第一条消息后，这里会显示活动上下文。'));
@@ -100,7 +101,7 @@ async function openSession(id) {
   for (const message of data.messages) entry(message.role === 'human' ? '你' : 'Astraea', message.content, message.role === 'human' ? 'user' : '');
   if (!data.messages.length) welcome();
   document.getElementById('workspace').textContent = `工作区 · ${data.workspace}`;
-  document.getElementById('status').textContent = `T${data.context_tier} · 上下文 ${data.context_percent}%`;
+  document.getElementById('status').textContent = `动态上下文 · ${data.context_percent}%`;
   await refreshHistory();
   if (contextDialog.open) refreshContext();
   setSidebarOpen(false);
@@ -206,7 +207,7 @@ form.addEventListener('submit', async (event) => {
         if (item.type === 'error') throw new Error(item.message);
         if (item.type === 'done') {
           completed = true;
-          document.getElementById('status').textContent = `T${item.context_tier} · 上下文 ${item.context_percent}%${item.memory_saved === false ? ' · Memory 整理失败' : ''}`;
+          document.getElementById('status').textContent = `动态上下文 · ${item.context_percent}%${item.memory_saved === false ? ' · Memory 整理失败' : ''}`;
         }
       }
     }

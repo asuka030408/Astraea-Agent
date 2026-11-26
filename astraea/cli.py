@@ -38,7 +38,8 @@ def main() -> None:
 
         try:
             result = asyncio.run(invoke_with_mcp(model, settings,
-                                                 context.prepare(user_input, read_profile_markdown())))
+                                                 context.prepare(user_input, read_profile_markdown()),
+                                                 context=context))
         except Exception as exc:
             print(f"Request failed: {exc}")
             continue

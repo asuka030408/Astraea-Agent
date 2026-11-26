@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "full_tools": 21,
+    "selected_tools": 3,
+    "full_tokens": 1901,
+    "selected_tokens": 238
+  },
+  "cache": {
+    "baseline_ms_median": 660.86,
+    "optimized_ms_median": 57.28,
+    "correct": 80,
+    "total": 80
+  },
+  "parallel_plan": {
+    "sequential_ms_median": 254.33,
+    "parallel_ms_median": 66.85,
+    "correct": 16,
+    "total": 16
+  },
+  "prediction": {
+    "baseline_ms_median": 92.95,
+    "prefetch_ms_median": 76.99,
+    "correct": 4,
+    "total": 4
+  },
+  "compression": {
+    "raw_chars": 14013,
+    "visible_chars": 1645,
+    "full_result_preserved": true
+  }
+}

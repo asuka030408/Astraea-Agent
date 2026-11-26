@@ -24,7 +24,7 @@ class WebTests(unittest.TestCase):
             sessions[context.session_id] = Session(context)
             settings = type("Settings", (), {"context_window": 64000, "workspace": "test-workspace"})()
 
-            async def fake_invoke(_model, _settings, messages, callbacks=None):
+            async def fake_invoke(_model, _settings, messages, callbacks=None, context=None):
                 await callbacks[0].on_llm_new_token("你好")
                 return {"messages": [*messages, AIMessage(content="你好")]}
 

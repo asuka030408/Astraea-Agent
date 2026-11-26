@@ -1,49 +1,38 @@
-"""Run a small, real-model check of T4 context compaction.
+"""Optional real-model continuity check for adaptive context selection."""
 
-Usage: .\.venv\Scripts\python.exe tests\live_smoke.py
-This makes two model requests and may incur API charges.
-"""
-
+import asyncio
 import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from astraea.agent import build_agent, build_model
 from astraea.config import load_settings
-from astraea.context import ContextManager, usage_tokens
+from astraea.context import ContextManager
 
 
-def main() -> None:
+async def main() -> None:
     settings = load_settings()
     model = build_model(settings)
-    agent = build_agent(model)
-    history = [
-        HumanMessage(content="请记住：本次测试的校验词是紫色彗星。" + "这是较早的讨论内容。" * 120),
-        AIMessage(content="我记住了校验词，并将继续处理任务。" + "这是较早的回答。" * 100),
-        HumanMessage(content="现在先讨论项目结构。"),
-        AIMessage(content="建议把入口、配置、工具和上下文管理分开。"),
-        HumanMessage(content="再讨论测试方式。"),
-        AIMessage(content="可以先用单元测试，再做真实模型的冒烟测试。"),
-    ]
-    question = "最开始指定的校验词是什么？只回答校验词。"
-    planned = [*history, HumanMessage(content=question)]
-    budget = int(usage_tokens(planned) / 0.91)
-
+    compactor = build_model(settings, settings.compactor_model)
     with tempfile.TemporaryDirectory() as directory, patch("astraea.storage.DATA_DIR", Path(directory)):
-        context = ContextManager(model, budget)
+        context = ContextManager(compactor, min(settings.context_window, 16000))
+        history = [HumanMessage(content="本次测试的校验词是紫色彗星，请记住。"), AIMessage(content="已记录。")]
+        for number in range(12):
+            history.extend([HumanMessage(content=f"第{number}轮讨论项目结构。" + "这里是无关的背景。" * 160),
+                            AIMessage(content="继续讨论结构。" * 100)])
         context.record(history)
-        request = context.prepare(question)
-        assert context.tier == 4, f"Expected T4, got T{context.tier}"
-        assert isinstance(request[0], SystemMessage), "Summary was not injected into messages"
-        answer = str(agent.invoke({"messages": request})["messages"][-1].content)
-        assert "紫色彗星" in answer, f"Important context was lost: {answer}"
-        print("PASS: T4 triggered, summary entered messages, and the model retained the early constraint.")
+        request = context.prepare("最开始指定的校验词是什么？只回答校验词。")
+        result = await build_agent(model, context=context).ainvoke({"messages": request})
+        answer = str(result["messages"][-1].content)
+        assert "紫色彗星" in answer, f"Early fact was not recalled: {answer}"
+        print(f"PASS: recalled early fact; model input {context.last_budget['input_total']} / "
+              f"{context.last_budget['input_limit']} tokens; checkpoint={bool(context.summary)}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
